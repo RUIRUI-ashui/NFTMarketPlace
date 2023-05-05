@@ -54,7 +54,16 @@ contract NFTMarketplace {
     emit PurchaseFilled(_purchaseId, _purchase.id, msg.sender);
   }
 
-  function removeNFTFromSale(uint _purchaseId) public {}
+  function removeNFTFromSale(uint _purchaseId) public {
+    _Purchase storage _purchase = purchases[_purchaseId];
+    require(_purchase.purchaseId == _purchaseId, 'The purchase must exist');
+    require(_purchase.user == msg.sender, 'The purchase can only be canceled by the owner');
+    require(_purchase.purchased == false, 'A purchased purchase cannot be removed');
+    require(_purchase.removed == false, 'An purchase cannot be removed twice');
+    nftCollection.transferFrom(address(this), msg.sender, _purchase.id);
+    _purchase.removed = true;
+    emit PurchaseCancelled(_purchaseId, _purchase.id, msg.sender);
+  }
 
   function claimFunds() public {}
 
