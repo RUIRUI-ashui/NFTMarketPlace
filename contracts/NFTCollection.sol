@@ -2,8 +2,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NFTCollection is ERC721, ERC721Enumerable {
+contract NFTCollection is ERC721, ERC721Enumerable, Ownable {
   string[] public tokenURIs;
   mapping(string => bool) _tokenURIExists;
   mapping(uint => string) _tokenIdToTokenURI;
@@ -36,7 +37,7 @@ contract NFTCollection is ERC721, ERC721Enumerable {
     return _tokenIdToTokenURI[tokenId];
   }
 
-  function createNFT(string memory _tokenURI, string memory _name, string memory _description) public {
+  function createNFT(string memory _tokenURI, string memory _name, string memory _description) public onlyOwner{
     require(!_tokenURIExists[_tokenURI], 'The token URI should be unique');
     tokenURIs.push(_tokenURI);    
     uint _id = tokenURIs.length;
