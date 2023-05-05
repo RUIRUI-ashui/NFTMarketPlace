@@ -50,3 +50,7 @@ Deploy the contracts on your Ganache local blockchain by running the following c
 ```
 $ truffle migrate
 ```
+### Contributions of Each Team Member
+Lei Xu(lx2301), Hongzhe You(hy2762), and Anqi Xue(ax2170) are responsible for designing and implementing the NFT marketplace smart contract. They are responsible for writing the Solidity code for the contract, testing it, and ensuring that it is secure and efficient. They are also responsible for implementing additional features, such as access control and error handling, to ensure the contract is reliable.
+
+Haozhong jia(hj2622), Haoran Wang(hw2897), and Fengyuan Ye(fy2294) are responsible for ensuring that the NFT marketplace smart contract is fully tested and functional. They are also responsible for writing and executing test cases, identifying and reporting bugs, and ensuring that the software meets the project requirements and quality standards.
