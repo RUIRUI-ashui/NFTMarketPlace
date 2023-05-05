@@ -65,7 +65,12 @@ contract NFTMarketplace {
     emit PurchaseCancelled(_purchaseId, _purchase.id, msg.sender);
   }
 
-  function claimFunds() public {}
+  function claimFunds() public {
+    require(userFunds[msg.sender] > 0, 'This user has no funds to be claimed');
+    payable(msg.sender).transfer(userFunds[msg.sender]);
+    emit ClaimFunds(msg.sender, userFunds[msg.sender]);
+    userFunds[msg.sender] = 0;    
+  }
 
   fallback () external {
     revert();
