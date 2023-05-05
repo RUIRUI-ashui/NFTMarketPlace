@@ -34,11 +34,19 @@ contract NFTMarketplace {
     nftCollection = NFTCollection(_nftCollection);
   }
   
-    function listNFTForSale(uint _id, uint _price) public {
+  function listNFTForSale(uint _id, uint _price) public {
     nftCollection.transferFrom(msg.sender, address(this), _id);
     purchaseCount ++;
     purchases[purchaseCount] = _Purchase(purchaseCount, _id, msg.sender, _price, false, false);
     emit Purchase(purchaseCount, _id, msg.sender, _price, false, false);
   }
+
+  function purchaseNFT(uint _purchaseId) public payable {}
+
+  function removeNFTFromSale(uint _purchaseId) public {}
+
+  function claimFunds() public {}
+
+  fallback () external {}
 
 }
