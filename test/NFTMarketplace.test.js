@@ -14,18 +14,18 @@ contract('NFTMarketplace', (accounts) => {
     const NFTaddress = nftContract.address;
     mktContract = await NFTMarketplace.new(NFTaddress);
 
-    await nftContract.safeMint('testURI');
-    await nftContract.safeMint('testURI2');
+    await nftContract.createNFT('testURI', "test1", "description");
+    await nftContract.createNFT('testURI2',"test2", "description");
   });
 
-  describe('Make Offer', () => {
+  describe('List NFT for Sale', () => {
     it('Requires the approval from the user', async () => {
-      await expectRevert(mktContract.makeOffer(1, 10), 'ERC721: transfer caller is not owner nor approved');
+      await expectRevert(mktContract.listNFTForSale(1, 10), 'ERC721: caller is not token owner or approved');
     });
 
     before(async() => {
       await nftContract.approve(mktContract.address, 2);
-      await mktContract.makeOffer(2, 10);      
+      await mktContract.listNFTForSale(2, 10);      
     })
 
     it('Transfers the ownership to this contract', async() => {
@@ -33,92 +33,92 @@ contract('NFTMarketplace', (accounts) => {
       assert.equal(owner, mktContract.address);
     });
 
-    it('Creates an offer', async() => {
-      const offer = await mktContract.offers(1);
-      assert.equal(offer.offerId.toNumber(), 1);
-      assert.equal(offer.id.toNumber(), 2);
-      assert.equal(offer.user, accounts[0]);
-      assert.equal(offer.price.toNumber(), 10);
-      assert.equal(offer.fulfilled, false);
-      assert.equal(offer.cancelled, false);
+    it('Creates an purchase', async() => {
+      const purchase = await mktContract.purchases(1);
+      assert.equal(purchase.purchaseId.toNumber(), 1);
+      assert.equal(purchase.id.toNumber(), 2);
+      assert.equal(purchase.user, accounts[0]);
+      assert.equal(purchase.price.toNumber(), 10);
+      assert.equal(purchase.purchased, false);
+      assert.equal(purchase.removed, false);
     });
 
-    it('Emits an Event Offer', async() => {
+    it('Emits an Event list NFT for sale', async() => {
       await nftContract.approve(mktContract.address, 1);
-      const result = await mktContract.makeOffer(1, 20);
+      const result = await mktContract.listNFTForSale(1, 20);
       const log = result.logs[0];
-      assert.equal(log.event, 'Offer');
+      assert.equal(log.event, 'Purchase');
       const event = log.args;
-      assert.equal(event.offerId.toNumber(), 2);
+      assert.equal(event.purchaseId.toNumber(), 2);
       assert.equal(event.id.toNumber(), 1);
       assert.equal(event.user, accounts[0]);
       assert.equal(event.price.toNumber(), 20);
-      assert.equal(event.fulfilled, false);
-      assert.equal(event.cancelled, false);
+      assert.equal(event.purchased, false);
+      assert.equal(event.removed, false);
     });
   });
 
-  describe('Fill Offer', () => {
-    it('fills the offer and emits Event', async() => {
-      const result = await mktContract.fillOffer(1, { from: accounts[1], value: 10 });
-      const offer = await mktContract.offers(1);
-      assert.equal(offer.fulfilled, true);
-      const userFunds = await mktContract.userFunds(offer.user);
+  describe('Purchase a NFT', () => {
+    it('purchase the NFT and emits Event', async() => {
+      const result = await mktContract.purchaseNFT(1, { from: accounts[1], value: 10 });
+      const purchase = await mktContract.purchases(1);
+      assert.equal(purchase.purchased, true);
+      const userFunds = await mktContract.userFunds(purchase.user);
       assert.equal(userFunds.toNumber(), 10);
 
       const log = result.logs[0];
-      assert.equal(log.event, 'OfferFilled');
+      assert.equal(log.event, 'PurchaseFilled');
       const event = log.args;
-      assert.equal(event.offerId.toNumber(), 1);
+      assert.equal(event.purchaseId.toNumber(), 1);
     });
     
-    it('The offer must exist', async() => {
-      await expectRevert(mktContract.fillOffer(3, { from: accounts[1] }), 'The offer must exist');
+    it('The NFT must exist', async() => {
+      await expectRevert(mktContract.purchaseNFT(3, { from: accounts[1] }), 'The purchase must exist');
     });
 
-    it('The owner cannot fill it', async() => {
-      await expectRevert(mktContract.fillOffer(2, { from: accounts[0] }), 'The owner of the offer cannot fill it');
+    it('The owner cannot buy it', async() => {
+      await expectRevert(mktContract.purchaseNFT(2, { from: accounts[0] }), 'The owner of the purchase cannot fill it');
     });
 
-    it('Cannot be fulfilled twice', async() => {
-      await expectRevert(mktContract.fillOffer(1, { from: accounts[1] }), 'An offer cannot be fulfilled twice');
+    it('Cannot be puchased twice', async() => {
+      await expectRevert(mktContract.purchaseNFT(1, { from: accounts[1] }), 'An purchase cannot be purchased twice');
     });
 
-    it('A fulfilled order cannot be cancelled', async() => {
-      await expectRevert(mktContract.cancelOffer(1, { from: accounts[0] }), 'A fulfilled offer cannot be cancelled');
+    it('A completed(puchased) cannot be removed', async() => {
+      await expectRevert(mktContract.removeNFTFromSale(1, { from: accounts[0] }), 'A purchased purchase cannot be removed');
     });
 
     it('The ETH sent should match the price', async() => {
-      await expectRevert(mktContract.fillOffer(2, { from: accounts[1], value: 5 }), 'The ETH amount should match with the NFT Price');
+      await expectRevert(mktContract.purchaseNFT(2, { from: accounts[1], value: 5 }), 'The ETH amount should match with the NFT Price');
     });
   });
 
-  describe('Cancel Offer', () => {
+  describe('Remove NFT from Sale', () => {
     it('Only the owner can cancel', async() => {
-      await expectRevert(mktContract.cancelOffer(2, { from: accounts[1] }), 'The offer can only be canceled by the owner');
+      await expectRevert(mktContract.removeNFTFromSale(2, { from: accounts[1] }), 'The purchase can only be canceled by the owner');
     });
     
-    it('Cancels the offer and emits Event', async() => {
-      const result = await mktContract.cancelOffer(2, { from: accounts[0] });
-      const offer = await mktContract.offers(2);
-      assert.equal(offer.cancelled, true);
+    it('remove NFT from sale and emits Event', async() => {
+      const result = await mktContract.removeNFTFromSale(2, { from: accounts[0] });
+      const purchase = await mktContract.purchases(2);
+      assert.equal(purchase.removed, true);
 
       const log = result.logs[0];
-      assert.equal(log.event, 'OfferCancelled');
+      assert.equal(log.event, 'PurchaseCancelled');
       const event = log.args;
-      assert.equal(event.offerId.toNumber(), 2);
+      assert.equal(event.purchaseId.toNumber(), 2);
     });
     
-    it('The offer must exist', async() => {
-      await expectRevert(mktContract.cancelOffer(3, { from: accounts[0] }), 'The offer must exist');
+    it('The NFT exist', async() => {
+      await expectRevert(mktContract.removeNFTFromSale(3, { from: accounts[0] }), 'The purchase must exist');
     });    
 
-    it('Cannot be cancelled twice', async() => {
-      await expectRevert(mktContract.cancelOffer(2, { from: accounts[0] }), 'An offer cannot be cancelled twice');
+    it('Cannot be removed twice', async() => {
+      await expectRevert(mktContract.removeNFTFromSale(2, { from: accounts[0] }), 'An purchase cannot be removed twice');
     });
 
-    it('A cancelled offer cannot be fulfilled', async() => {
-      await expectRevert(mktContract.fillOffer(2, { from: accounts[1] }), 'A cancelled offer cannot be fulfilled');
+    it('The NFT being removed cannot be purchased again', async() => {
+      await expectRevert(mktContract.purchaseNFT(2, { from: accounts[1] }), 'A removed purchase cannot be purchased');
     });
   });
 

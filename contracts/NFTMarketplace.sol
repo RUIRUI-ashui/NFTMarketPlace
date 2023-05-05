@@ -7,7 +7,7 @@ contract NFTMarketplace {
   mapping (uint => _Purchase) public purchases;
   mapping (address => uint) public userFunds;
   NFTCollection nftCollection;
-
+  
   struct _Purchase {
     uint purchaseId;
     uint id;
@@ -72,6 +72,7 @@ contract NFTMarketplace {
     userFunds[msg.sender] = 0;    
   }
 
+  // Fallback: reverts if Ether is sent to this smart-contract by mistake
   fallback () external {
     revert();
   }
