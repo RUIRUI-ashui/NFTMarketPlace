@@ -1,0 +1,23 @@
+{
+  "name": "nft-market",
+  "version": "0.1.0",
+  "description": "NFT Market",
+  "author": "shuishui0021@gmail.com",
+  "homepage": ".",
+  "engines": {
+    "node": "14.17.3"
+  },
+  "dependencies": {
+    "web3": "^1.4.0"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^4.8.3",
+    "@openzeppelin/test-helpers": "^0.5.12",
+    "dotenv": "^10.0.0",
+    "truffle": "^5.3.14"
+  },
+  "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  }
+}
